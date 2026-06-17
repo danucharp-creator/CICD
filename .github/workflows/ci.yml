@@ -4,20 +4,18 @@ on:
   push:
     branches: [ "main" ]
 
-# 🔑 ขอสิทธิ์ในการอ่านและเขียนข้อมูลบน GitHub Container Registry (GHCR)
 permissions:
   packages: write
   contents: read
 
 jobs:
-  # 🟢 Job 1: ทำการสร้างและบรรจุไฟล์ลง Docker Image จากนั้นดันขึ้นคลังเก็บของ GitHub
+  # 🟢 Job 1: บิวด์แอปพลิเคชันเป็น Container Image แล้วเก็บไว้บนคลาวด์
   build-and-push-image:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # ล็อกอินเข้าใช้งานระบบเก็บของสากล GHCR ของ GitHub เอง
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -25,7 +23,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # สั่งให้บิวด์และแพ็กโค้ดเป็น Docker Image แล้วดันขึ้นคลาวด์คลังเก็บของทันที
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
@@ -33,7 +30,7 @@ jobs:
           push: true
           tags: ghcr.io/danuchar-creator/cicd-app:latest
 
-  # 🟢 Job 2: สั่งเดพิวลอยล์ตรงลงมาที่เครื่องคอมบ้านคุณผ่าน Self-hosted Runner ตัวเดิม
+  # 🟢 Job 2: สั่งเดพิวลอยล์ตรงลงคอมบ้านผ่าน Docker Compose (รันบนสิทธิ์ User ปกติ)
   deploy-to-home-server:
     needs: build-and-push-image
     runs-on: self-hosted
@@ -42,23 +39,21 @@ jobs:
       - name: Checkout docker-compose file only
         uses: actions/checkout@v4
 
-      # สั่งให้เครื่องคอมที่บ้านดึงไฟล์เวอร์ชันล่าสุดจากคลังลงมารันแบบปลอดภัยไร้กังวล
+      # สั่งรันแอปพลิเคชันผ่าน Docker Compose ในเครื่องคอมของคุณ
       - name: Run Application via Docker Compose
         run: |
           echo "========================================="
           echo "🐋 เริ่มต้นกระบวนการอัปเดตระบบด้วย Docker"
           echo "========================================="
           
-          # ล็อกอินที่เครื่องบ้านเพื่อให้ดึง Image ส่วนตัวลงมาได้
+          # ใช้ Token ล็อกอินเพื่อให้ Docker ในเครื่องบ้านสามารถดึง Image ส่วนตัวลงมาได้
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
-          # ดึง Image ตัวล่าสุดที่คุณเพิ่งบิวด์เสร็จสดๆ ร้อนๆ ลงมาที่เครื่องคอมบ้าน
+          # ดึงและอัปเดต Container
           docker compose pull
-          
-          # สั่งรันแอปพลิเคชันขึ้นมาใหม่ในโหมดเบื้องหลัง (Background/Detached)
           docker compose up -d --build
           
-          # ล้างไฟล์ขยะหรือ Image เก่าๆ ที่หมดอายุออกจากเครื่องเพื่อเซฟพื้นที่ฮาร์ดดิสก์คอมบ้าน
+          # เคลียร์ Image เก่าๆ ที่ไม่ได้ใช้ทิ้งไปเพื่อเซฟพื้นที่ฮาร์ดดิสก์คอมบ้าน
           docker image prune -f
           
-          echo "🟢 เดพิวลอยล์แอปด้วย Container ผ่านฉลุยแล้วครับพี่นวย!"
+          echo "🟢 เดพิวลอยล์แอปด้วย Container ผ่านฉลุยแล้วครับ!"
