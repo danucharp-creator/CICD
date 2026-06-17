@@ -3,7 +3,7 @@ version: '3.8'
 services:
   web-app:
     # เราจะให้ GitHub Actions เป็นคนสร้าง Image แล้วส่งไปเก็บที่ GitHub Container Registry (GHCR)
-    image: ghcr.io/danuchar-creator/cicd-app:latest
+    image: ghcr.io/danucharp-creator/cicd-app:latest
     container_name: python_cicd_prod
     restart: always
     ports:
