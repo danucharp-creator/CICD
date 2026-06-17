@@ -30,7 +30,7 @@ jobs:
           push: true
           tags: ghcr.io/danucharp-creator/cicd-app:latest
 
-  # 🟢 Job 2: สั่งเดพิวลอยล์ตรงลงคอมบ้านผ่าน Docker Compose (รันบนสิทธิ์ User ปกติ)
+  # 🟢 Job 2: สั่งเดพิวลอยล์ตรงลงคอมบ้านผ่าน Docker Compose
   deploy-to-home-server:
     needs: build-and-push-image
     runs-on: self-hosted
@@ -46,14 +46,14 @@ jobs:
           echo "🐋 เริ่มต้นกระบวนการอัปเดตระบบด้วย Docker"
           echo "========================================="
           
-          # ใช้ Token ล็อกอินเพื่อให้ Docker ในเครื่องบ้านสามารถดึง Image ส่วนตัวลงมาได้
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          # ใช้ Token ล็อกอินคลังเก็บของโดยใช้สิทธิ์ sudo ผ่านท่อสแตนด์บาย
+          echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
-          # ดึงและอัปเดต Container
-          docker compose pull
-          docker compose up -d --build
+          # ดึงและอัปเดต Container ด้วยพลังของ sudo เพื่อป้องกันเรื่อง Permission Denied
+          sudo docker compose pull
+          sudo docker compose up -d --build
           
-          # เคลียร์ Image เก่าๆ ที่ไม่ได้ใช้ทิ้งไปเพื่อเซฟพื้นที่ฮาร์ดดิสก์คอมบ้าน
-          docker image prune -f
+          # เคลียร์ Image ขยะเก่าๆ ออกจากเครื่องทันที
+          sudo docker image prune -f
           
           echo "🟢 เดพิวลอยล์แอปด้วย Container ผ่านฉลุยแล้วครับ!"
