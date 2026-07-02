@@ -39,7 +39,7 @@ Optimized Container Lifecycle: Tailored docker-compose.yml logic to suit specifi
 ## 🎯 Project Roadmap (Next Milestones)
 - [x] Phase 1: Dockerization & Basic CI/CD Pipeline Configuration
 - [x] Phase 2: Integration of Automated Code Quality (SonarQube) and Security Gate (Trivy)
-- [ ] Phase 3: Centralized Monitoring (Prometheus & Grafana Dashboard) to track host and container metrics
+- [X] Phase 3: Centralized Monitoring (Prometheus & Grafana Dashboard) to track host and container metrics
 - [ ] Phase 4: Real-time Incident Notification via Chat Webhook (LINE / Discord Notification Gate)
 
 ## 🚀 How to Run & Setup Local Server
